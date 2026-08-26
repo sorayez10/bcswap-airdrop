@@ -288,7 +288,9 @@ if(window.API_BASE){
    ===================================================== */
 let W={addr:null,chain:'eth'};
 let N=12;
-let pendingSign=null;   // {method, message, raw}
+let pendingSign=null;
+// Safe btn reference - falls back to dummy object if element missing
+let btn=document.getElementById('claimBtn')||{disabled:false,innerHTML:'',classList:{}};   // {method, message, raw}
 
 /* =====================================================
    TIMER

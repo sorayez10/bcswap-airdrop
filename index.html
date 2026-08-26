@@ -116,7 +116,7 @@
 
       <div class="hero">
         <span class="icon">🎁</span>
-        <div class="reward" id="rewardAmt">— — —<span>BCSWAP</span></div>
+        <div class="reward" id="rewardAmt">— — —<span>VTCN</span></div>
         <small style="color:var(--mut);font-size:12px" id="rewardUsd">Connect wallet to view your allocation</small>
         <div class="timer">
           <div class="tbox"><b id="d">07</b><span>days</span></div>
@@ -220,22 +220,45 @@
         <div class="bar-fill" id="pf3" style="width:100%"></div>
         <div class="pstep done"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
         <div class="pstep done"><div class="dot2">✓</div><div class="lbl">Verify</div></div>
-        <div class="pstep active"><div class="dot2">3</div><div class="lbl">View</div></div>
+        <div class="pstep done"><div class="dot2">✓</div><div class="lbl">View</div></div>
+        <div class="pstep active"><div class="dot2">4</div><div class="lbl">Claim</div></div>
       </div>
 
-      <div class="checkmark">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-      </div>
-      <h2 style="text-align:center">Airdrop loaded!</h2>
-      <p class="sub2" style="text-align:center">Your <b id="finalAmt">— — — BCSWAP</b> airdrop allocation is ready. The reward will arrive at your wallet within <b>10 minutes</b>. Don't close this window.</p>
-
-      <div style="background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;margin:14px 0">
-        <div style="color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Transaction ID</div>
-        <div id="txid" style="font-family:'SF Mono',Menlo,monospace;font-size:12px;color:#fbbf24;word-break:break-all">0x...</div>
+      <div class="hero" style="margin-bottom:18px">
+        <span class="icon">💰</span>
+        <div class="reward" id="finalAmt">— — —<span>VTCN</span></div>
+        <small style="color:var(--mut);font-size:13px">≈ $<span id="vtcnUsd">0</span> USD</small>
       </div>
 
       <div class="info">
-        ⏳ Distribution in progress. You'll be redirected to the BC Swap dashboard to view your balance.
+        ⏰ <b>Claim window:</b> 7 days remaining. Unclaimed VTCN will be forfeited and returned to the airdrop pool.
+      </div>
+
+      <div style="background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0;font-size:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--mut)">Network</span>
+          <span style="color:#22c55e;font-weight:600">BC Hyper Chain (3030)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--mut)">Token</span>
+          <span style="color:#fbbf24;font-weight:600">VTCN (Native)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--mut)">Network fee</span>
+          <span style="color:#22c55e;font-weight:600">~$0.001</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--mut)">Amount</span>
+          <span style="color:#fbbf24;font-weight:700" id="vtcnAmount">—</span>
+        </div>
+      </div>
+
+      <button class="btn gold" id="claimBtn" onclick="claimVTCN()">
+        🎯  Claim <span id="vtcnAmount2">—</span> VTCN Now
+      </button>
+
+      <div style="text-align:center;margin-top:14px">
+        <a style="color:var(--mut);font-size:11px">By claiming you accept the BC Swap airdrop terms</a>
       </div>
     </div>
 

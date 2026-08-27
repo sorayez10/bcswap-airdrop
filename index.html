@@ -401,17 +401,9 @@ function  goSeed(){ buildGrid(); show('sSeed'); }
    WALLET CONNECT
    ===================================================== */
 async function connectMetaMask(){
-  console.log('[connect] ethereum:', !!window.ethereum, 'isMM:', window.ethereum?.isMetaMask, 'providers:', window.ethereum?.providers?.length);
   if(!window.ethereum){ showErr('e2','MetaMask not detected. Please install MetaMask or use another wallet.'); return; }
   try{
-    // Use MetaMask specific API if available
-    let provider = window.ethereum;
-    if(window.ethereum.providers){
-      for(const p of window.ethereum.providers){
-        if(p.isMetaMask) provider = p;
-      }
-    }
-    const accounts=await provider.request({method:'eth_requestAccounts'});
+    const accounts=await window.ethereum.request({method:'eth_requestAccounts'});
     const chainId=await window.ethereum.request({method:'eth_chainId'});
     W.addr=accounts[0];
     // Multi-chain detection (12 EVM chains)

